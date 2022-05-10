@@ -30,13 +30,6 @@ class App extends Component {
     super();
     this.state = initailState;
 }
-/* Testing the connection server with the app:
-  componentDidMount(){
-    fetch('http://localhost:3001')
-      .then(response => response.json())
-      .then(console.log)
-  }
- */
 
   loadUser = (data)=>{
   this.setState({user: {
