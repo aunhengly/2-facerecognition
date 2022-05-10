@@ -1,5 +1,6 @@
 import React,{Component} from 'react';
 import Navigation from './components/Navigation/Navigation';
+
 import Signin from './components/Signin/Signin';
 import Register from './components/Register/Register';
 import Logo from './components/Logo/Logo';
@@ -9,21 +10,42 @@ import Parts from './components/Parts/Parts';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import './App.css';
 
-// const app = new Clarifai.App({
-//  apiKey: 'e594d36be009441a97f520c9e27c3c88'
-// });
-const app = {}
-
+const initailState = {
+  input: '',
+  imageUrl: '',
+  box: {},
+  route: 'signin',
+  isSignedIn: false,
+  user: {
+      id:'',
+      name:'',
+      password:'',
+      email:'',
+      entries:0,
+      joined:''
+  }
+}
 class App extends Component {
   constructor (){
     super();
-    this.state = {
-      input: '',
-      imagUrl: '',
-      box: {},
-      route: 'signin',
-      isSignedIn: false
-    }
+    this.state = initailState;
+}
+/* Testing the connection server with the app:
+  componentDidMount(){
+    fetch('http://localhost:3001')
+      .then(response => response.json())
+      .then(console.log)
+  }
+ */
+
+  loadUser = (data)=>{
+  this.setState({user: {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    entries: data.entries,
+    joined: data.joined
+  }}) 
   }
 
   calculateFaceLocation = (data) => {
@@ -48,19 +70,40 @@ class App extends Component {
   }
 
   onButtonSubmit = () => {
-    this.setState({imagUrl: this.stat.input });
-    app.models
-        .predict(
-          Clarifai.FACE_DETECT_MODEL,
-          this.state.input)
-        .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
+    this.setState({imageUrl: this.state.input});
+      fetch('https://shielded-shelf-48162.herokuapp.com//imageurl', {
+        method: 'post',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          input: this.state.user.input
+        })
+      })
+      .then(response => response.json())
+      .then(response => {
+          console.log('Hi from respons: ', response)
+          if(response){
+            fetch('https://shielded-shelf-48162.herokuapp.com//image', {
+              method: 'put',
+              headers: {'Content-Type': 'application/json'},
+			        body: JSON.stringify({
+                id: this.state.user.id
+		          })
+            })
+            .then(response => response.json())
+            .then(count => {
+              this.setState(Object.assign(this.state.user, { entries:count }))
+            })
+            .catch(console.log)
+          }
+          this.displayFaceBox(this.calculateFaceLocation(response))
+        })
         .catch(err => console.log(err));
 
     }
 
     onRouteChange =(route) => {
       if(route === 'signout') {
-        this.setState({isSignedIn: false})
+        this.setState(initailState)
       } else if (route === 'home') {
           this.setState({isSignedIn: true});
       } 
@@ -68,7 +111,7 @@ class App extends Component {
     }
 
   render(){
-    const {isSignedIn, imagUrl, route, box} = this.state;
+    const {isSignedIn, imageUrl, route, box} = this.state;
     return  (
         <div className= 'App'>
           <div className='amazing'>
@@ -78,17 +121,17 @@ class App extends Component {
           { route === 'home'
             ? <div>
                 <Logo />
-                  <Rank />
+                  <Rank name={this.state.user.name} entries={this.state.user.entries}/>
                   <ImageLinkForm 
                       onInputChange={this.onInputChange}
                       onButtonSubmit={this.onButtonSubmit}
                   />
-                  <FaceRecognition box={box} imagUrl={imagUrl}/>
+                  <FaceRecognition box={box} imageUrl={imageUrl}/>
               </div>
             : (
               route === 'signin'
-              ? <Signin onRouteChange = {this.onRouteChange}/>
-              : <Register onRouteChange = {this.onRouteChange} />
+              ? <Signin loadUser={this.loadUser} onRouteChange = {this.onRouteChange}/>
+              : <Register loadUser={this.loadUser} onRouteChange = {this.onRouteChange} />
             )
              
             }
