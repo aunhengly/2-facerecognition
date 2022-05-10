@@ -7,8 +7,6 @@ import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import Rank from './components/Rank/Rank';
 import Parts from './components/Parts/Parts';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
-import Clarifai from 'clarifai';
-
 import './App.css';
 
 // const app = new Clarifai.App({
