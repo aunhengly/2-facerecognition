@@ -1,44 +1,44 @@
-import React,{Component} from 'react';
-import Navigation from './components/Navigation/Navigation';
+import Parts from './components/Parts/Parts';
 
+import React, { Component } from 'react';
+import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import Navigation from './components/Navigation/Navigation';
 import Signin from './components/Signin/Signin';
 import Register from './components/Register/Register';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import Rank from './components/Rank/Rank';
-import Parts from './components/Parts/Parts';
-import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import './App.css';
 
-const initailState = {
+const initialState = {
   input: '',
   imageUrl: '',
   box: {},
   route: 'signin',
   isSignedIn: false,
   user: {
-      id:'',
-      name:'',
-      password:'',
-      email:'',
-      entries:0,
-      joined:''
+    id: '',
+    name: '',
+    email: '',
+    entries: 0,
+    joined: ''
   }
 }
-class App extends Component {
-  constructor (){
-    super();
-    this.state = initailState;
-}
 
-  loadUser = (data)=>{
-  this.setState({user: {
-    id: data.id,
-    name: data.name,
-    email: data.email,
-    entries: data.entries,
-    joined: data.joined
-  }}) 
+class App extends Component {
+  constructor() {
+    super();
+    this.state = initialState;
+  }
+
+  loadUser = (data) => {
+    this.setState({user: {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      entries: data.entries,
+      joined: data.joined
+    }})
   }
 
   calculateFaceLocation = (data) => {
@@ -55,10 +55,10 @@ class App extends Component {
   }
 
   displayFaceBox = (box) => {
-    this.setState({box: box})
+    this.setState({box: box});
   }
 
-  onInputChange =(event) =>{
+  onInputChange = (event) => {
     this.setState({input: event.target.value});
   }
 
@@ -68,7 +68,7 @@ class App extends Component {
         method: 'post',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          input: this.state.user.input
+          input: this.state.input
         })
       })
       .then(response => response.json())
@@ -84,7 +84,7 @@ class App extends Component {
             })
             .then(response => response.json())
             .then(count => {
-              this.setState(Object.assign(this.state.user, { entries:count }))
+              this.setState(Object.assign(this.state.user, { entries: count }))
             })
             .catch(console.log)
           }
@@ -96,9 +96,9 @@ class App extends Component {
 
     onRouteChange =(route) => {
       if(route === 'signout') {
-        this.setState(initailState)
+        this.setState(initialState)
       } else if (route === 'home') {
-          this.setState({isSignedIn: true});
+          this.setState({isSignedIn: true})
       } 
       this.setState({route: route});
     }
@@ -110,26 +110,28 @@ class App extends Component {
           <div className='amazing'>
             <Parts />
           </div>
-          <Navigation isSignedIn ={isSignedIn} onRouteChange = {this.onRouteChange}/>
-          { route === 'home'
-            ? <div>
-                <Logo />
-                  <Rank name={this.state.user.name} entries={this.state.user.entries}/>
-                  <ImageLinkForm 
-                      onInputChange={this.onInputChange}
-                      onButtonSubmit={this.onButtonSubmit}
-                  />
-                  <FaceRecognition box={box} imageUrl={imageUrl}/>
-              </div>
-            : (
-              route === 'signin'
-              ? <Signin loadUser={this.loadUser} onRouteChange = {this.onRouteChange}/>
-              : <Register loadUser={this.loadUser} onRouteChange = {this.onRouteChange} />
+          <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
+        { route === 'home'
+          ? <div>
+              <Logo />
+              <Rank
+                name={this.state.user.name}
+                entries={this.state.user.entries}
+              />
+              <ImageLinkForm
+                onInputChange={this.onInputChange}
+                onButtonSubmit={this.onButtonSubmit}
+              />
+              <FaceRecognition box={box} imageUrl={imageUrl} />
+            </div>
+          : (
+             route === 'signin'
+             ? <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
+             : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
             )
-             
-            }
-        </div>
-      )
+        }
+      </div>
+    );
   }
 }
 
