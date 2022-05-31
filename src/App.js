@@ -13,7 +13,7 @@ import './App.css';
 const initialState = {
   input: '',
   imageUrl: '',
-  box: {},
+  boxes: [],
   route: 'signin',
   isSignedIn: false,
   user: {
@@ -41,21 +41,23 @@ class App extends Component {
     }})
   }
 
-  calculateFaceLocation = (data) => {
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-    const image = document.getElementById('inputimage');
-    const width = Number(image.width);
-    const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height - (clarifaiFace.bottom_row * height)
-    }
+  calculateFaceLocations = (data) => {
+    return data.outputs[0].data.regions.map(face => {
+      const clarifaiFace = face.region_info.bounding_box;
+      const image = document.getElementById('inputimage');
+      const width = Number(image.width);
+      const height = Number(image.height);
+      return {
+        leftCol: clarifaiFace.left_col * width,
+        topRow: clarifaiFace.top_row * height,
+        rightCol: width - (clarifaiFace.right_col * width),
+        bottomRow: height - (clarifaiFace.bottom_row * height)
+      }
+    });
   }
 
-  displayFaceBox = (box) => {
-    this.setState({box: box});
+  displayFaceBoxes = (boxes) => {
+    this.setState({boxes: boxes});
   }
 
   onInputChange = (event) => {
@@ -73,7 +75,6 @@ class App extends Component {
       })
       .then(response => response.json())
       .then(response => {
-          console.log('Hi from respons: ', response)
           if(response){
             fetch('https://shielded-shelf-48162.herokuapp.com/image', {
               method: 'put',
@@ -88,7 +89,8 @@ class App extends Component {
             })
             .catch(console.log)
           }
-          this.displayFaceBox(this.calculateFaceLocation(response))
+          console.log('Hi from respons: ', response);
+          this.displayFaceBoxes(this.calculateFaceLocations(response))
         })
         .catch(err => console.log(err));
 
@@ -104,7 +106,7 @@ class App extends Component {
     }
 
   render(){
-    const {isSignedIn, imageUrl, route, box} = this.state;
+    const {isSignedIn, imageUrl, route, boxes} = this.state;
     return  (
         <div className= 'App'>
           <div className='amazing'>
@@ -122,7 +124,7 @@ class App extends Component {
                 onInputChange={this.onInputChange}
                 onButtonSubmit={this.onButtonSubmit}
               />
-              <FaceRecognition box={box} imageUrl={imageUrl} />
+              <FaceRecognition boxes={boxes} imageUrl={imageUrl} />
             </div>
           : (
              route === 'signin'
